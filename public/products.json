@@ -1,0 +1,43 @@
+[
+    {
+      "id": 1,
+      "name": "Laptop",
+      "category": "Electronics",
+      "price": 999,
+      "status": "Available",
+      "published": true
+    },
+    {
+      "id": 2,
+      "name": "T-shirt",
+      "category": "Clothing",
+      "price": 29,
+      "status": "Available",
+      "published": true
+    },
+    {
+      "id": 3,
+      "name": "Sofa",
+      "category": "Home",
+      "price": 499,
+      "status": "Out of Stock",
+      "published": false
+    },
+    {
+      "id": 4,
+      "name": "Makeup Kit",
+      "category": "Beauty",
+      "price": 50,
+      "status": "Coming Soon",
+      "published": true
+    },
+    {
+      "id": 5,
+      "name": "Smartphone",
+      "category": "Electronics",
+      "price": 699,
+      "status": "Available",
+      "published": true
+    }
+  ]
+  
