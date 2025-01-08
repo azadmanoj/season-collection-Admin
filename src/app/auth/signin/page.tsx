@@ -19,17 +19,17 @@ const SignIn: React.FC = () => {
         <div className="flex flex-wrap items-center">
           <div className="hidden w-full xl:block xl:w-1/2">
             <div className="px-26 py-17.5 text-center">
-              <Link className="mb-5.5 inline-block" href="/">
+              <Link className="mb-5.5 inline-block border-r-8" href="/">
                 <Image
                   className="hidden dark:block"
-                  src={"/images/logo/logo4.png"}
+                  src={"/images/logo/logoNew.png"}
                   alt="Logo"
                   width={176}
                   height={32}
                 />
                 <Image
                   className="dark:hidden"
-                  src={"/images/logo/logo4.png"}
+                  src={"/images/logo/logoNew.png"}
                   alt="Logo"
                   width={176}
                   height={32}
