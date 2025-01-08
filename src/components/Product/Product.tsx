@@ -23,7 +23,6 @@ interface Product {
 
 const ProductsPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  console.log("🚀 ~ ProductsPage ~ products:", products)
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedPrice, setSelectedPrice] = useState<string>("");
@@ -79,9 +78,7 @@ const ProductsPage = () => {
         setStatuses(uniqueStatuses);
         setPriceRanges(priceRanges);
 
-        if (uniqueCategories.length > 0) {
-          setSelectedCategory(uniqueCategories[0]);
-        }
+        // setSelectedCategory(uniqueCategories[2]);
       })
       .catch((error) => {
         console.error("Error fetching products:", error);

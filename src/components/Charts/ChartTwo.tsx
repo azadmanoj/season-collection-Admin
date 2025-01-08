@@ -60,7 +60,7 @@ const options: ApexOptions = {
     fontSize: "14px",
 
     markers: {
-      radius: 99,
+      size: 10, // Set the size of the marker, you can adjust this value
     },
   },
   fill: {
