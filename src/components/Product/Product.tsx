@@ -368,19 +368,12 @@ const ProductsPage = () => {
                 <label className="block text-sm font-semibold text-white">
                   Category
                 </label>
-                <select
+                <input
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
                   className="w-full rounded border p-2 text-black"
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
               <div className="mb-4">
                 <label className="block text-sm font-semibold text-white">
