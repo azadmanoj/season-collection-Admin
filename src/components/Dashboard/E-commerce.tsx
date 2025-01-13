@@ -1,12 +1,14 @@
 "use client";
 import dynamic from "next/dynamic";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ChartOne from "../Charts/ChartOne";
 import ChartTwo from "../Charts/ChartTwo";
 import ChatCard from "../Chat/ChatCard";
 import TableOne from "../Tables/TableOne";
 import CardDataStats from "../CardDataStats";
 import TableTwo from "../Tables/TableTwo";
+import { useRouter } from "next/navigation";
+import jwt_decode from "jwt-decode";
 
 const MapOne = dynamic(() => import("@/components/Maps/MapOne"), {
   ssr: false,
@@ -17,6 +19,33 @@ const ChartThree = dynamic(() => import("@/components/Charts/ChartThree"), {
 });
 
 const ECommerce: React.FC = () => {
+  const [loading, setLoading] = useState("");
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decodedToken: any = jwt_decode(token);
+      const expiryDate = decodedToken.exp * 1000;
+      const currentDate = new Date().getTime();
+
+      if (currentDate < expiryDate) {
+        router.push("/"); // Redirect if token is valid
+      } else {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("userEmail");
+      }
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (!localStorage.getItem("userId") || !localStorage.getItem("userEmail"))
+      return () => {
+        router.push("/auth/signin");
+      };
+  });
+
   return (
     <>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-5 2xl:gap-7.5">

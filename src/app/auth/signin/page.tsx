@@ -8,6 +8,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import { useRouter } from "next/navigation";
+import Loader from "@/components/common/Loader";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -44,7 +45,6 @@ const SignIn = () => {
       const tokenData = response.data.token;
       if (tokenData) {
         const decodedToken: any = jwt_decode(tokenData);
-        console.log("🚀 ~ handleLogin ~ decodedToken:", decodedToken);
         const { userId, email: userEmail, profile: profile } = decodedToken;
 
         if (profile === "Admin") {
@@ -52,14 +52,12 @@ const SignIn = () => {
           localStorage.setItem("userId", userId);
           localStorage.setItem("userEmail", userEmail);
 
-          setLoading(false);
           toast.success(
             "Login successful! Redirecting to your Admin dashboard...",
           );
 
-          setTimeout(() => {
-            router.push("/");
-          }, 2000);
+          setLoading(false);
+          router.push("/");
         } else {
           toast.error("SC: You are not authorized!");
           setTimeout(() => {
@@ -134,7 +132,13 @@ const SignIn = () => {
             className="w-full rounded-lg bg-blue-600 px-4 py-3 text-white transition duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             disabled={loading}
           >
-            {loading ? "Signing In..." : "Sign In"}
+            {loading ? (
+              <div className="absolute inset-0 z-10  items-center justify-center rounded-lg  bg-black bg-opacity-50">
+                <Loader />
+              </div>
+            ) : (
+              "Sign In"
+            )}
           </button>
         </form>
       </div>

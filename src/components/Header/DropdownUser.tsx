@@ -4,9 +4,13 @@ import Image from "next/image";
 import ClickOutside from "@/components/ClickOutside";
 import { useRouter } from "next/navigation";
 
+export interface UserDetails {
+  firstName: string;
+  lastName: string;
+}
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [userDetails, setUserDetails] = useState();
+  const [userDetails, setUserDetails] = useState<UserDetails>();
   const router = useRouter();
 
   const id = localStorage.getItem("userId");
@@ -30,10 +34,6 @@ const DropdownUser = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
     localStorage.removeItem("userEmail");
-
-    // Optionally, you can clear any other session data or perform other clean-up tasks.
-
-    console.log("Logging out...");
 
     // Redirect to the login page using Next.js router (instead of window.location.href)
     router.push("/auth/signin"); // This will reload the page and redirect to the login page

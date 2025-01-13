@@ -29,7 +29,7 @@ const ProductsPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedPrice, setSelectedPrice] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [isPublished, setIsPublished] = useState(true);
+  const [isPublished, setIsPublished] = useState(false);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<string[]>([]);
   const [priceRanges, setPriceRanges] = useState<string[]>([]);
@@ -107,6 +107,7 @@ const ProductsPage = () => {
     selectedStatus,
     isPublished,
   ]);
+  console.log("🚀 ~ filterProducts ~ filterProducts:", filterProducts);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLElement>) => {
     const { name, value } = e.target as HTMLInputElement | HTMLTextAreaElement;
@@ -175,6 +176,43 @@ const ProductsPage = () => {
       setTimeout(() => window.location.reload(), 4000);
     } catch (error) {
       console.error("Error deleting product:", error);
+    }
+  };
+
+  const togglePublishedStatus = async (
+    productId: string,
+    currentStatus: boolean,
+  ) => {
+    console.log("🚀 ~ ProductsPage ~ currentStatus:", currentStatus);
+    console.log("🚀 ~ ProductsPage ~ productId:", productId);
+    try {
+      // Create the updated product data with the toggled 'published' status
+      const updatedProduct = {
+        published: !currentStatus, // If it's true, set it to false; if it's false, set it to true
+      };
+
+      // Make the PUT request to update the product's published status
+      const response = await axios.put(
+        `https://season-collection-backend.onrender.com/api/jewelry/${productId}`,
+        updatedProduct,
+      );
+
+      // If the request is successful, update the local state
+      if (response.status === 200) {
+        toast.success("Product status updated successfully");
+
+        // Optimistically update the local state without re-fetching all products
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product.id === productId
+              ? { ...product, published: !currentStatus } // Toggle the 'published' status in local state
+              : product,
+          ),
+        );
+      }
+    } catch (error) {
+      console.error("Error updating product status:", error);
+      toast.error("Failed to update product status");
     }
   };
 
@@ -422,7 +460,9 @@ const ProductsPage = () => {
                   <div className="flex flex-col gap-5.5 p-6.5">
                     <SwitcherThree
                       enabled={product.published}
-                      onClick={() => (product.published = !product.published)}
+                      setEnabled={() =>
+                        togglePublishedStatus(product.id, product.published)
+                      }
                     />
                   </div>
                 </td>

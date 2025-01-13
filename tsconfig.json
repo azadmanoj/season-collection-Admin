@@ -2,8 +2,13 @@
   "compilerOptions": {
     "moduleResolution": "node",
     "target": "es5",
-    "jsx": "react-jsx",
-    "lib": ["dom", "dom.iterable", "ES2015", "esnext"],
+    "jsx": "preserve",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "ES2015",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -20,9 +25,19 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/auth/signin/page.js"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/app/auth/signin/page.js"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
