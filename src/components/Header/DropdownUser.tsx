@@ -1,10 +1,43 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import ClickOutside from "@/components/ClickOutside";
+import { useRouter } from "next/navigation";
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [userDetails, setUserDetails] = useState();
+  const router = useRouter();
+
+  const id = localStorage.getItem("userId");
+  const email = localStorage.getItem("userEmail");
+
+  useEffect(() => {
+    if (id) {
+      fetch(`https://season-collection-backend.onrender.com/api/auth/${id}`)
+        .then((response) => response.json())
+        .then((data) => {
+          setUserDetails(data);
+        })
+        .catch((error) => {
+          console.error("Error fetching user details:", error);
+        });
+    }
+  }, [id]);
+
+  const handleLogout = () => {
+    // Clear user data from localStorage
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userEmail");
+
+    // Optionally, you can clear any other session data or perform other clean-up tasks.
+
+    console.log("Logging out...");
+
+    // Redirect to the login page using Next.js router (instead of window.location.href)
+    router.push("/auth/signin"); // This will reload the page and redirect to the login page
+  };
 
   return (
     <ClickOutside onClick={() => setDropdownOpen(false)} className="relative">
@@ -15,9 +48,9 @@ const DropdownUser = () => {
       >
         <span className="hidden text-right lg:block">
           <span className="block text-sm font-medium text-black dark:text-white">
-            Manoj Azad
+            {userDetails?.firstName}
           </span>
-          <span className="block text-xs">Admin</span>
+          <span className="block text-xs">{userDetails?.lastName}</span>
         </span>
 
         <span className="h-12 w-12 rounded-full">
@@ -128,7 +161,10 @@ const DropdownUser = () => {
               </Link>
             </li>
           </ul>
-          <button className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base">
+          <button
+            className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
+            onClick={handleLogout}
+          >
             <svg
               className="fill-current"
               width="22"

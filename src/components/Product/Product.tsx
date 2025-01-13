@@ -5,6 +5,8 @@ import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Modal from "../Modal/Modal";
+import SwitcherFour from "../Switchers/SwitcherFour";
+import SwitcherThree from "../Switchers/SwitcherThree";
 
 // Define the Product interface
 interface Product {
@@ -39,7 +41,6 @@ const ProductsPage = () => {
     actionHandler: () => {},
     redirectTo: "",
   });
-  // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -53,32 +54,14 @@ const ProductsPage = () => {
   });
 
   useEffect(() => {
-    console.log("Fetching products...");
     fetch("https://season-collection-backend.onrender.com/api/jewelry")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
+      .then((response) => response.json())
       .then((data: Product[]) => {
         setProducts(data);
         setLoading(false);
-
-        const uniqueCategories = [
-          ...new Set(data.map((product) => product.category)),
-        ];
-        const uniqueStatuses = [
-          ...new Set(data.map((product) => product.status)),
-        ];
-
-        const priceRanges = ["0-50", "51-100", "101-200", "201-500", "500+"];
-
-        setCategories(uniqueCategories);
-        setStatuses(uniqueStatuses);
-        setPriceRanges(priceRanges);
-
-        // setSelectedCategory(uniqueCategories[2]);
+        setCategories([...new Set(data.map((product) => product.category))]);
+        setStatuses([...new Set(data.map((product) => product.status))]);
+        setPriceRanges(["0-50", "51-100", "101-200", "201-500", "500+"]);
       })
       .catch((error) => {
         console.error("Error fetching products:", error);
@@ -88,19 +71,16 @@ const ProductsPage = () => {
 
   const filterProducts = useMemo(() => {
     let filteredProducts = products;
-
     if (searchTerm) {
       filteredProducts = filteredProducts.filter((product) =>
         product.title.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
-
     if (selectedCategory) {
       filteredProducts = filteredProducts.filter(
         (product) => product.category === selectedCategory,
       );
     }
-
     if (selectedPrice) {
       const [min, max] = selectedPrice.split("-").map(Number);
       filteredProducts = filteredProducts.filter(
@@ -108,19 +88,16 @@ const ProductsPage = () => {
           product.price >= min && (max ? product.price <= max : true),
       );
     }
-
     if (selectedStatus) {
       filteredProducts = filteredProducts.filter(
         (product) => product.status === selectedStatus,
       );
     }
-
     if (isPublished) {
       filteredProducts = filteredProducts.filter(
         (product) => product.published,
       );
     }
-
     return filteredProducts;
   }, [
     products,
@@ -131,55 +108,35 @@ const ProductsPage = () => {
     isPublished,
   ]);
 
-  // Handle form field changes
   const handleInputChange = (e: React.ChangeEvent<HTMLElement>) => {
-    const { name, value } = e.target as
-      | HTMLInputElement
-      | HTMLTextAreaElement
-      | HTMLSelectElement;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    const { name, value } = e.target as HTMLInputElement | HTMLTextAreaElement;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle image file change (used for image upload)
   const handleAddImage = (
-    event: ChangeEvent<HTMLInputElement>,
-    setFieldValue: (
-      fieldName: string,
-      value: string | ArrayBuffer | null | undefined,
-    ) => void,
+    e: ChangeEvent<HTMLInputElement>,
+    callback: (fieldName: string, value: string) => void,
   ) => {
-    if (event.currentTarget.files && event.currentTarget.files[0]) {
-      const file = event.currentTarget.files[0];
+    const file = e.target.files?.[0];
+    if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result;
-        setFieldValue("image", result);
+      reader.onloadend = () => {
+        if (reader.result) {
+          callback("image", reader.result as string);
+        }
       };
-      reader.readAsDataURL(file); // Read the file as a data URL
+      reader.readAsDataURL(file);
     }
   };
 
   const handleSubmit = async () => {
-    console.log("Submitting new product:", formData);
-
     try {
-      // Make a POST request with axios
       const response = await axios.post(
         "https://season-collection-backend.onrender.com/api/jewelry",
         formData,
       );
-
-      toast.success("Product Added Successfully ");
-      console.log("Product submitted successfully:", response.data);
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 4000);
-
-      // Reset form and close modal
+      toast.success("Product Added Successfully");
+      setTimeout(() => window.location.reload(), 4000);
       setFormData({
         title: "",
         image: "",
@@ -203,25 +160,19 @@ const ProductsPage = () => {
       actionHandler: () => handleDelete(id),
       redirectTo: "/cart",
     });
-
     setIsConfirmModalOpen(true);
   };
 
-  // Handle Delete
   const handleDelete = async (id: string) => {
     try {
       await axios.delete(
         `https://season-collection-backend.onrender.com/api/jewelry/${id}`,
       );
-      // Remove the deleted product from the state
       setProducts((prevProducts) =>
         prevProducts.filter((product) => product.id !== id),
       );
-      toast.success("Product Deleted Successfully ");
-      console.log(`Product with id ${id} deleted successfully`);
-      setTimeout(() => {
-        window.location.reload();
-      }, 4000);
+      toast.success("Product Deleted Successfully");
+      setTimeout(() => window.location.reload(), 4000);
     } catch (error) {
       console.error("Error deleting product:", error);
     }
@@ -332,15 +283,12 @@ const ProductsPage = () => {
                     <Image
                       src={formData.image as string}
                       alt="Product Preview"
-                      width={300}
+                      width={500}
                       height={300}
-                      objectFit="cover"
-                      className="rounded"
                     />
                   </div>
                 )}
               </div>
-              {/* Other fields */}
               <div className="mb-4">
                 <label className="block text-sm font-semibold text-white">
                   Price
@@ -362,13 +310,14 @@ const ProductsPage = () => {
                   value={formData.description}
                   onChange={handleInputChange}
                   className="w-full rounded border p-2 text-black"
-                />
+                ></textarea>
               </div>
               <div className="mb-4">
                 <label className="block text-sm font-semibold text-white">
                   Category
                 </label>
                 <input
+                  type="text"
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
@@ -379,48 +328,36 @@ const ProductsPage = () => {
                 <label className="block text-sm font-semibold text-white">
                   Status
                 </label>
-                <select
+                <input
+                  type="text"
                   name="status"
                   value={formData.status}
                   onChange={handleInputChange}
                   className="w-full rounded border p-2 text-black"
-                >
-                  <option value="">Select Status</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
+                />
+              </div>
+              <div className="mb-4 flex items-center">
+                <input
+                  type="checkbox"
+                  name="published"
+                  checked={formData.published}
+                  onChange={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      published: !prev.published,
+                    }))
+                  }
+                  className="mr-2"
+                />
+                <label className="text-sm text-white">Published</label>
               </div>
               <div className="mb-4">
-                <label className="flex items-center text-white">
-                  <input
-                    type="checkbox"
-                    name="published"
-                    checked={formData.published}
-                    onChange={() =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        published: !prev.published,
-                      }))
-                    }
-                    className="mr-2"
-                  />
-                  Published
-                </label>
-              </div>
-              <div className="flex space-x-4">
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  className="w-1/2 rounded bg-blue-500 py-2 text-white hover:bg-blue-600"
+                  className="w-full rounded bg-blue-500 px-4 py-2 text-white"
                 >
                   Submit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="w-1/2 rounded bg-gray-500 py-2 text-white hover:bg-gray-600"
-                >
-                  Cancel
                 </button>
               </div>
             </form>
@@ -428,89 +365,88 @@ const ProductsPage = () => {
         </div>
       )}
 
-      {/* Product List */}
-      <div className=" grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {loading ? (
-          <div>Loading...</div>
-        ) : (
-          filterProducts.map((product) => (
-            <div
-              key={product.id}
-              className="flex flex-col rounded-lg border p-4 shadow-lg transition-shadow duration-200 ease-in-out hover:shadow-xl"
-            >
-              {/* Product Image */}
-              <div className=" mb-4 h-48 w-full">
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  className="h-full w-full rounded-md object-cover"
-                />
-              </div>
-
-              {/* Product Information */}
-              <h3 className="mb-2 text-xl font-semibold text-black">
-                {product.title}
-              </h3>
-              <p className="mb-2 text-gray-600">{product.description}</p>
-              <p className="mb-2 font-semibold text-black">${product.price}</p>
-              <p className="text-sm text-gray-500">
-                Category: {product.category}
-              </p>
-              <p className="text-sm text-gray-500">Status: {product.status}</p>
-
-              <div className="mt-4 flex justify-between">
-                <button className=" text-gray-500  hover:text-red-600">
-                  <svg
-                    className="fill-current"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 18 18"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M8.99981 14.8219C3.43106 14.8219 0.674805 9.50624 0.562305 9.28124C0.47793 9.11249 0.47793 8.88749 0.562305 8.71874C0.674805 8.49374 3.43106 3.20624 8.99981 3.20624C14.5686 3.20624 17.3248 8.49374 17.4373 8.71874C17.5217 8.88749 17.5217 9.11249 17.4373 9.28124C17.3248 9.50624 14.5686 14.8219 8.99981 14.8219ZM1.85605 8.99999C2.4748 10.0406 4.89356 13.5562 8.99981 13.5562C13.1061 13.5562 15.5248 10.0406 16.1436 8.99999C15.5248 7.95936 13.1061 4.44374 8.99981 4.44374C4.89356 4.44374 2.4748 7.95936 1.85605 8.99999Z"
-                      fill=""
+      {/* Product Table */}
+      <div className="overflow-x-auto rounded-lg bg-white shadow-lg">
+        <table className="min-w-full table-auto">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="px-6 py-3 text-left text-sm font-semibold uppercase text-gray-700">
+                Product Name
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-semibold uppercase text-gray-700">
+                Category
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-semibold uppercase text-gray-700">
+                Price
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-semibold uppercase text-gray-700">
+                Stock
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-semibold uppercase text-gray-700">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-semibold uppercase text-gray-700">
+                Published
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-semibold uppercase text-gray-700">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {filterProducts.map((product) => (
+              <tr key={product.id} className="border-t hover:bg-gray-50">
+                <td className="flex items-center px-6 py-4 text-sm text-gray-800">
+                  <Image
+                    src={product.image}
+                    alt={product.title}
+                    width={40}
+                    height={40}
+                    className="mr-3 rounded"
+                  />
+                  {product.title}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-800">
+                  {product.category}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-800">
+                  ${product.price}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-800">
+                  {product.stock}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-800">
+                  {product.status}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-800">
+                  <div className="flex flex-col gap-5.5 p-6.5">
+                    <SwitcherThree
+                      enabled={product.published}
+                      onClick={() => (product.published = !product.published)}
                     />
-                    <path
-                      d="M9 11.3906C7.67812 11.3906 6.60938 10.3219 6.60938 9C6.60938 7.67813 7.67812 6.60938 9 6.60938C10.3219 6.60938 11.3906 7.67813 11.3906 9C11.3906 10.3219 10.3219 11.3906 9 11.3906ZM9 7.875C8.38125 7.875 7.875 8.38125 7.875 9C7.875 9.61875 8.38125 10.125 9 10.125C9.61875 10.125 10.125 9.61875 10.125 9C10.125 8.38125 9.61875 7.875 9 7.875Z"
-                      fill=""
-                    />
-                  </svg>
-                </button>
-
-                <button
-                  onClick={() => handleRemoveItem(product._id, product.title)}
-                  className="  text-gray-500  hover:text-red-600"
-                >
-                  <svg
-                    className="fill-current"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 18 18"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
+                  </div>
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-800">
+                  <button
+                    onClick={() => handleRemoveItem(product._id, product.title)}
+                    className="text-gray-500 hover:text-red-600"
                   >
-                    <path d="M13.7535 2.47502H11.5879V1.9969C11.5879 1.15315 10.9129 0.478149 10.0691 0.478149H7.90352C7.05977 0.478149 6.38477 1.15315 6.38477 1.9969V2.47502H4.21914C3.40352 2.47502 2.72852 3.15002 2.72852 3.96565V4.8094C2.72852 5.42815 3.09414 5.9344 3.62852 6.1594L4.07852 15.4688C4.13477 16.6219 5.09102 17.5219 6.24414 17.5219H11.7004C12.8535 17.5219 13.8098 16.6219 13.866 15.4688L14.3441 6.13127C14.8785 5.90627 15.2441 5.3719 15.2441 4.78127V3.93752C15.2441 3.15002 14.5691 2.47502 13.7535 2.47502ZM7.67852 1.9969C7.67852 1.85627 7.79102 1.74377 7.93164 1.74377H10.0973C10.2379 1.74377 10.3504 1.85627 10.3504 1.9969V2.47502H7.70664V1.9969H7.67852ZM4.02227 3.96565C4.02227 3.85315 4.10664 3.74065 4.24727 3.74065H13.7535C13.866 3.74065 13.9785 3.82502 13.9785 3.96565V4.8094C13.9785 4.9219 13.8941 5.0344 13.7535 5.0344H4.24727C4.13477 5.0344 4.02227 4.95002 4.02227 4.8094V3.96565ZM11.7285 16.2563H6.27227C5.79414 16.2563 5.40039 15.8906 5.37227 15.3844L4.95039 6.2719H13.0785L12.6566 15.3844C12.6004 15.8625 12.2066 16.2563 11.7285 16.2563Z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          ))
-        )}
+                    <svg
+                      className="fill-current"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 18 18"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path d="M13.7535 2.47502H10.7535V1.47502C10.7535 1.24551 10.608 1.03751 10.4265 0.99751C10.2595 0.95751 10.0725 1.04351 9.9295 1.21051L9.4265 2.21251C9.3475 2.34751 9.2305 2.42751 9.0915 2.42751H7.7535C7.6155 2.42751 7.4985 2.34751 7.4295 2.21251L6.9265 1.21051C6.7835 1.04351 6.5955 0.95751 6.4285 0.99751C6.247 1.03751 6.1015 1.24551 6.1015 1.47502V2.47502H3.3535C3.1595 2.47502 2.9945 2.62802 3.0055 2.82702C3.0335 3.19802 3.3115 3.41902 3.5865 3.41902H14.9215C15.2015 3.41902 15.4785 3.19602 15.5155 2.82702C15.5265 2.62802 15.3615 2.47502 15.1675 2.47502H13.7535Z" />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-
-      {isConfirmModalOpen && (
-        <Modal
-          title={modalProps.title}
-          message={modalProps.message}
-          actionLabel={modalProps.actionLabel}
-          actionHandler={modalProps.actionHandler}
-          onClose={() => setIsConfirmModalOpen(false)}
-        />
-      )}
-
-      <ToastContainer />
     </div>
   );
 };

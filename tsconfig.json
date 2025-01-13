@@ -1,19 +1,19 @@
 {
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable","ES2015", "esnext"],
+    "moduleResolution": "node",
+    "target": "es5",
+    "jsx": "react-jsx",
+    "lib": ["dom", "dom.iterable", "ES2015", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
     "incremental": true,
-    "target": "ES2015",  // Make sure this is at least ES2015
-    "downlevelIteration": true ,// Enable downlevelIteration for Sets
+    "downlevelIteration": true, // Enable downlevelIteration for Sets
     "plugins": [
       {
         "name": "next"
@@ -23,6 +23,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/auth/signin/page.js"],
   "exclude": ["node_modules"]
 }
