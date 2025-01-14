@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -12,9 +12,9 @@ const ProductModal = ({
   setFormData,
   setIsEditMode,
 }: any) => {
-  console.log("🚀 ~ onClose:", onClose)
-  console.log("🚀 ~ mode:", mode)
-  console.log("🚀 ~ product:", product)
+  console.log("🚀 ~ onClose:", onClose);
+  console.log("🚀 ~ mode:", mode);
+  console.log("🚀 ~ product:", product);
   // Initialize form data when in edit mode
   useEffect(() => {
     if (mode === "edit" && product) {
@@ -42,13 +42,18 @@ const ProductModal = ({
   };
 
   const handleAddImage = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    callback: Function,
+    e: ChangeEvent<HTMLInputElement>,
+    callback: (fieldName: string, value: string) => void,
   ) => {
     const file = e.target.files?.[0];
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      callback("image", imageUrl);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (reader.result) {
+          callback("image", reader.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -59,7 +64,7 @@ const ProductModal = ({
   const router = useRouter();
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-4 flex items-center justify-center bg-black bg-opacity-50 sm:mt-22">
       <div className="max-h-[90vh] w-full overflow-y-auto rounded-lg bg-[#1a222c] p-6 shadow-xl sm:w-96">
         <h2 className="mb-4 text-xl font-semibold text-white">
           {mode === "edit" ? "Edit Product" : "Add New Product"}
