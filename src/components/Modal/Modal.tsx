@@ -1,5 +1,6 @@
+import { useRouter } from "next/navigation";
 import React from "react";
-import { useRouter } from "next/router";
+import Loader from "../common/Loader";
 
 const Modal = ({
   isOpen,
@@ -11,7 +12,7 @@ const Modal = ({
   redirectTo,
 }: any) => {
   // Ensure the router is available before using it
-
+  const router = useRouter();
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="relative w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
@@ -31,7 +32,8 @@ const Modal = ({
           <button
             onClick={() => {
               actionHandler(); // Trigger action handler (Add to Cart / Wishlist)
-              closeModal(); // Close the modal
+              closeModal();
+              if (redirectTo) router.push(redirectTo); // Close the modal
             }}
             className="rounded-lg bg-[#ffcdd6] px-6 py-2 text-[#dc5f62]"
           >

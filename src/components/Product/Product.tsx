@@ -4,9 +4,10 @@ import axios from "axios";
 import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Modal from "../Modal/Modal";
-import SwitcherFour from "../Switchers/SwitcherFour";
 import SwitcherThree from "../Switchers/SwitcherThree";
+import Modal from "../Modal/Modal";
+import Loader from "../common/Loader";
+import ProductModal from "../ProductModal/ProductModal"; // Import the modal component
 
 // Define the Product interface
 interface Product {
@@ -30,20 +31,12 @@ const ProductsPage = () => {
   const [selectedPrice, setSelectedPrice] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [isPublished, setIsPublished] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<string[]>([]);
   const [priceRanges, setPriceRanges] = useState<string[]>([]);
-  const [statuses, setStatuses] = useState<string[]>([]);
-  const [modalProps, setModalProps] = useState({
-    title: "",
-    message: "",
-    actionLabel: "",
-    actionHandler: () => {},
-    redirectTo: "",
-  });
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [statuses, setStatuses] = useState<string[]>([]);
   const [formData, setFormData] = useState({
+    id: "",
     title: "",
     image: "",
     price: 0,
@@ -52,20 +45,35 @@ const ProductsPage = () => {
     status: "",
     published: true,
   });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false); // Track if it's edit mode
+  const [modalProps, setModalProps] = useState({
+    title: "",
+    message: "",
+    actionLabel: "",
+    actionHandler: () => {},
+    redirectTo: "",
+  });
+
+  const [productModalProps, setProductModalProps] = useState({
+    mode: "",
+    product: {} as Product,
+    onClose: () => {},
+    onSubmit: () => {},
+    redirectTo: "",
+  });
 
   useEffect(() => {
     fetch("https://season-collection-backend.onrender.com/api/jewelry")
       .then((response) => response.json())
       .then((data: Product[]) => {
         setProducts(data);
-        setLoading(false);
         setCategories([...new Set(data.map((product) => product.category))]);
         setStatuses([...new Set(data.map((product) => product.status))]);
         setPriceRanges(["0-50", "51-100", "101-200", "201-500", "500+"]);
       })
       .catch((error) => {
         console.error("Error fetching products:", error);
-        setLoading(false);
       });
   }, []);
 
@@ -107,7 +115,6 @@ const ProductsPage = () => {
     selectedStatus,
     isPublished,
   ]);
-  console.log("🚀 ~ filterProducts ~ filterProducts:", filterProducts);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLElement>) => {
     const { name, value } = e.target as HTMLInputElement | HTMLTextAreaElement;
@@ -131,14 +138,29 @@ const ProductsPage = () => {
   };
 
   const handleSubmit = async () => {
+    console.log("🚀 ~ ProductsPage ~ isEditMode:", isEditMode);
+    console.log("🚀 ~ handleSubmit ~ formData111:", formData);
+
     try {
-      const response = await axios.post(
-        "https://season-collection-backend.onrender.com/api/jewelry",
-        formData,
-      );
-      toast.success("Product Added Successfully");
-      setTimeout(() => window.location.reload(), 4000);
+      if (isEditMode) {
+        // Edit product
+        const response = await axios.put(
+          `https://season-collection-backend.onrender.com/api/jewelry/${formData.id}`,
+          formData,
+        );
+        toast.success("Product updated successfully!");
+      } else {
+        // Add new product
+
+        const response = await axios.post(
+          "https://season-collection-backend.onrender.com/api/jewelry",
+          formData,
+        );
+        toast.success("Product added successfully");
+      }
+      setTimeout(() => window.location.reload(), 3000);
       setFormData({
+        id: "",
         title: "",
         image: "",
         price: 0,
@@ -153,13 +175,43 @@ const ProductsPage = () => {
     }
   };
 
+  // Open modal for adding a new product
+  const handleAddProduct = () => {
+    setFormData({
+      id: "",
+      title: "",
+      image: "",
+      price: 0,
+      description: "",
+      category: "",
+      status: "",
+      published: true,
+    });
+    setIsEditMode(false); // For adding a new product, set edit mode to false
+    setIsModalOpen(true);
+  };
+
+  // Open modal for editing an existing product
+  const openEditModal = (product: Product) => {
+    setProductModalProps({
+      mode: "edit",
+      product,
+      onClose: () => setIsModalOpen(false),
+      onSubmit: handleSubmit, // Ensure handleSubmit is called when submitting
+      redirectTo: "/product",
+    });
+    setIsEditMode(true); // Set edit mode to true
+    setFormData(product); // Populate formData with the product details
+    setIsModalOpen(true);
+  };
+
   const handleRemoveItem = (id: any, title: string) => {
     setModalProps({
       title: "Delete Item",
       message: `Are you sure you want to delete "${title}" product?`,
       actionLabel: "Yes, Remove",
       actionHandler: () => handleDelete(id),
-      redirectTo: "/cart",
+      redirectTo: "/product",
     });
     setIsConfirmModalOpen(true);
   };
@@ -167,52 +219,16 @@ const ProductsPage = () => {
   const handleDelete = async (id: string) => {
     try {
       await axios.delete(
-        `https://season-collection-backend.onrender.com/api/jewelry/${id}`,
+        "https://season-collection-backend.onrender.com/api/jewelry/${id}",
       );
       setProducts((prevProducts) =>
         prevProducts.filter((product) => product.id !== id),
       );
       toast.success("Product Deleted Successfully");
-      setTimeout(() => window.location.reload(), 4000);
+      setIsConfirmModalOpen(false);
+      setTimeout(() => window.location.reload(), 3000);
     } catch (error) {
       console.error("Error deleting product:", error);
-    }
-  };
-
-  const togglePublishedStatus = async (
-    productId: string,
-    currentStatus: boolean,
-  ) => {
-    console.log("🚀 ~ ProductsPage ~ currentStatus:", currentStatus);
-    console.log("🚀 ~ ProductsPage ~ productId:", productId);
-    try {
-      // Create the updated product data with the toggled 'published' status
-      const updatedProduct = {
-        published: !currentStatus, // If it's true, set it to false; if it's false, set it to true
-      };
-
-      // Make the PUT request to update the product's published status
-      const response = await axios.put(
-        `https://season-collection-backend.onrender.com/api/jewelry/${productId}`,
-        updatedProduct,
-      );
-
-      // If the request is successful, update the local state
-      if (response.status === 200) {
-        toast.success("Product status updated successfully");
-
-        // Optimistically update the local state without re-fetching all products
-        setProducts((prevProducts) =>
-          prevProducts.map((product) =>
-            product.id === productId
-              ? { ...product, published: !currentStatus } // Toggle the 'published' status in local state
-              : product,
-          ),
-        );
-      }
-    } catch (error) {
-      console.error("Error updating product status:", error);
-      toast.error("Failed to update product status");
     }
   };
 
@@ -220,188 +236,36 @@ const ProductsPage = () => {
     <div className="container mx-auto p-6">
       <h1 className="mb-6 text-center text-3xl font-bold">Product Page</h1>
 
-      {/* Filter Section */}
-      <div className="mb-6 grid gap-4 lg:grid-cols-3">
-        <input
-          type="text"
-          placeholder="Search products..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="rounded border p-2 shadow-md"
+      {/* Modal */}
+      {isModalOpen && (
+        <ProductModal
+          mode={productModalProps.mode}
+          product={productModalProps.product}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={handleSubmit}
+          redirectTo={productModalProps.redirectTo}
+          formData={formData}
+          setFormData={setFormData}
         />
-        <select
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          value={selectedCategory}
-          className="rounded border p-2 shadow-md"
-        >
-          <option value="">Select Category</option>
-          {categories.map((category) => (
-            <option key={category} value={category}>
-              {category}
-            </option>
-          ))}
-        </select>
-        <select
-          onChange={(e) => setSelectedPrice(e.target.value)}
-          value={selectedPrice}
-          className="rounded border p-2 shadow-md"
-        >
-          <option value="">Select Price</option>
-          {priceRanges.map((range) => (
-            <option key={range} value={range}>
-              {range}
-            </option>
-          ))}
-        </select>
-        <select
-          onChange={(e) => setSelectedStatus(e.target.value)}
-          value={selectedStatus}
-          className="rounded border p-2 shadow-md"
-        >
-          <option value="">Select Status</option>
-          {statuses.map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
-        </select>
-        <label className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            checked={isPublished}
-            onChange={() => setIsPublished(!isPublished)}
-            className="mr-2"
-          />
-          <span>Show Published Products</span>
-        </label>
-      </div>
+      )}
+
+      {isEditMode && (
+        <ProductModal
+          mode={productModalProps.mode}
+          product={productModalProps.product}
+          onClose={() => setIsEditMode(false)}
+          onSubmit={handleSubmit}
+          redirectTo={productModalProps.redirectTo}
+          formData={formData}
+          setFormData={setFormData}
+          setIsEditMode={setIsEditMode}
+        />
+      )}
 
       {/* Add Product Button */}
       <div className="mb-5 inline-flex items-center justify-center rounded-full bg-white px-10 py-4 text-center font-semibold text-black hover:bg-opacity-90 lg:px-8 xl:px-10">
-        <button onClick={() => setIsModalOpen(true)}>Add Product</button>
+        <button onClick={handleAddProduct}>Add Product</button>
       </div>
-
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="max-h-[90vh] w-full overflow-y-auto rounded-lg bg-[#1a222c] p-6 shadow-xl sm:w-96">
-            <h2 className="mb-4 text-xl font-semibold text-white">
-              Add New Product
-            </h2>
-            <form>
-              {/* Input fields for product form */}
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-white">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  className="w-full rounded border p-2 text-black"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-white">
-                  Image
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    handleAddImage(e, (fieldName, value) =>
-                      setFormData((prev) => ({ ...prev, [fieldName]: value })),
-                    )
-                  }
-                  className="w-full rounded border p-2 text-black"
-                />
-                {formData.image && (
-                  <div className="relative mt-4 max-h-[300px] overflow-hidden rounded-md border">
-                    <Image
-                      src={formData.image as string}
-                      alt="Product Preview"
-                      width={500}
-                      height={300}
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-white">
-                  Price
-                </label>
-                <input
-                  type="number"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleInputChange}
-                  className="w-full rounded border p-2 text-black"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-white">
-                  Description
-                </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="w-full rounded border p-2 text-black"
-                ></textarea>
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-white">
-                  Category
-                </label>
-                <input
-                  type="text"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className="w-full rounded border p-2 text-black"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-white">
-                  Status
-                </label>
-                <input
-                  type="text"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                  className="w-full rounded border p-2 text-black"
-                />
-              </div>
-              <div className="mb-4 flex items-center">
-                <input
-                  type="checkbox"
-                  name="published"
-                  checked={formData.published}
-                  onChange={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      published: !prev.published,
-                    }))
-                  }
-                  className="mr-2"
-                />
-                <label className="text-sm text-white">Published</label>
-              </div>
-              <div className="mb-4">
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  className="w-full rounded bg-blue-500 px-4 py-2 text-white"
-                >
-                  Submit
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Product Table */}
       <div className="overflow-x-auto rounded-lg bg-white shadow-lg">
@@ -411,6 +275,11 @@ const ProductsPage = () => {
               <th className="px-6 py-3 text-left text-sm font-semibold uppercase text-gray-700">
                 Product Name
               </th>
+
+              <th className="px-6 py-3 text-left text-sm font-semibold uppercase text-gray-700">
+                Discription
+              </th>
+
               <th className="px-6 py-3 text-left text-sm font-semibold uppercase text-gray-700">
                 Category
               </th>
@@ -433,52 +302,98 @@ const ProductsPage = () => {
           </thead>
           <tbody>
             {filterProducts.map((product) => (
-              <tr key={product.id} className="border-t hover:bg-gray-50">
-                <td className="flex items-center px-6 py-4 text-sm text-gray-800">
+              <tr
+                key={product.id}
+                className="border-t transition-all duration-300 ease-in-out hover:bg-gray-50"
+              >
+                <td className="flex items-center gap-4 px-6 py-4 text-center text-sm text-gray-800">
                   <Image
                     src={product.image}
                     alt={product.title}
-                    width={40}
-                    height={40}
-                    className="mr-3 rounded"
+                    width={50}
+                    height={50}
+                    className="mr-3 rounded-lg shadow-md"
                   />
-                  {product.title}
+                  <span className="font-semibold text-gray-900">
+                    {product.title}
+                  </span>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-800">
+
+                <td className="px-6 py-4 text-center text-sm text-gray-800">
+                  {product.description}
+                </td>
+
+                <td className="px-6 py-4 text-center text-sm font-medium text-gray-800">
                   {product.category}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-800">
-                  ${product.price}
+
+                <td className="px-6 py-4 text-center text-sm font-bold text-gray-800">
+                  ${product.price.toFixed(2)}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-800">
+
+                <td className="px-6 py-4 text-center text-sm text-gray-800">
                   {product.stock}
                 </td>
+
                 <td className="px-6 py-4 text-sm text-gray-800">
-                  {product.status}
+                  <span
+                    className={`inline-block rounded-full px-3 py-1 text-xs ${
+                      product.status === "active"
+                        ? "bg-green-100 text-green-600"
+                        : "bg-red-100 text-red-600"
+                    }`}
+                  >
+                    {product.status}
+                  </span>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-800">
-                  <div className="flex flex-col gap-5.5 p-6.5">
+
+                <td className="px-6 py-4 text-center text-sm text-gray-800">
+                  <div className="flex justify-center">
                     <SwitcherThree
                       enabled={product.published}
                       setEnabled={() =>
-                        togglePublishedStatus(product.id, product.published)
+                        setProducts((prevProducts) =>
+                          prevProducts.map((prod) =>
+                            prod.id === product.id
+                              ? { ...prod, published: !prod.published }
+                              : prod,
+                          ),
+                        )
                       }
                     />
                   </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-800">
+
+                <td className="flex justify-center  gap-6  text-sm text-gray-800">
                   <button
-                    onClick={() => handleRemoveItem(product._id, product.title)}
-                    className="text-gray-500 hover:text-red-600"
+                    className="transform transition-all hover:scale-105 hover:text-primary"
+                    onClick={() => openEditModal(product)}
                   >
                     <svg
-                      className="fill-current"
+                      className="fill-current text-blue-500"
                       width="18"
                       height="18"
                       viewBox="0 0 18 18"
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                      <path d="M13.7535 2.47502H10.7535V1.47502C10.7535 1.24551 10.608 1.03751 10.4265 0.99751C10.2595 0.95751 10.0725 1.04351 9.9295 1.21051L9.4265 2.21251C9.3475 2.34751 9.2305 2.42751 9.0915 2.42751H7.7535C7.6155 2.42751 7.4985 2.34751 7.4295 2.21251L6.9265 1.21051C6.7835 1.04351 6.5955 0.95751 6.4285 0.99751C6.247 1.03751 6.1015 1.24551 6.1015 1.47502V2.47502H3.3535C3.1595 2.47502 2.9945 2.62802 3.0055 2.82702C3.0335 3.19802 3.3115 3.41902 3.5865 3.41902H14.9215C15.2015 3.41902 15.4785 3.19602 15.5155 2.82702C15.5265 2.62802 15.3615 2.47502 15.1675 2.47502H13.7535Z" />
+                      <path d="M8.99981 14.8219C3.43106 14.8219 0.674805 9.50624 0.562305 9.28124C0.47793 9.11249 0.47793 8.88749 0.562305 8.71874C0.674805 8.49374 3.43106 3.20624 8.99981 3.20624C14.5686 3.20624 17.3248 8.49374 17.4373 8.71874C17.5217 8.88749 17.5217 9.11249 17.4373 9.28124C17.3248 9.50624 14.5686 14.8219 8.99981 14.8219ZM1.85605 8.99999C2.4748 10.0406 4.89356 13.5562 8.99981 13.5562C13.1061 13.5562 15.5248 10.0406 16.1436 8.99999C15.5248 7.95936 13.1061 4.44374 8.99981 4.44374C4.89356 4.44374 2.4748 7.95936 1.85605 8.99999Z" />
+                      <path d="M9 11.3906C7.67812 11.3906 6.60938 10.3219 6.60938 9C6.60938 7.67813 7.67812 6.60938 9 6.60938C10.3219 6.60938 11.3906 7.67813 11.3906 9C11.3906 10.3219 10.3219 11.3906 9 11.3906ZM9 7.875C8.38125 7.875 7.875 8.38125 7.875 9C7.875 9.61875 8.38125 10.125 9 10.125C9.61875 10.125 10.125 9.61875 10.125 9C10.125 8.38125 9.61875 7.875 9 7.875Z" />
+                    </svg>
+                  </button>
+
+                  {/* Delete Button */}
+                  <button
+                    onClick={() => handleRemoveItem(product._id, product.title)}
+                    className="transform text-gray-500 transition-all hover:scale-105 hover:text-red-600"
+                  >
+                    <svg
+                      className="fill-current text-red-600"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 18 18"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path d="M13.7535 2.47502H11.5879V1.9969C11.5879 1.15315 10.9129 0.478149 10.0691 0.478149H7.90352C7.05977 0.478149 6.38477 1.15315 6.38477 1.9969V2.47502H4.21914C3.40352 2.47502 2.72852 3.15002 2.72852 3.96565V4.8094C2.72852 5.42815 3.09414 5.9344 3.62852 6.1594L4.07852 15.4688C4.13477 16.6219 5.09102 17.5219 6.24414 17.5219H11.7004C12.8535 17.5219 13.8098 16.6219 13.866 15.4688L14.3441 6.13127C14.8785 5.90627 15.2441 5.3719 15.2441 4.78127V3.93752C15.2441 3.15002 14.5691 2.47502 13.7535 2.47502ZM7.67852 1.9969C7.67852 1.85627 7.79102 1.74377 7.93164 1.74377H10.0973C10.2379 1.74377 10.3504 1.85627 10.3504 1.9969V2.47502H7.70664V1.9969H7.67852ZM4.02227 3.96565C4.02227 3.85315 4.10664 3.74065 4.24727 3.74065H13.7535C13.866 3.74065 13.9785 3.82502 13.9785 3.96565V4.8094C13.9785 4.9219 13.8941 5.0344 13.7535 5.0344H4.24727C4.13477 5.0344 4.02227 4.95002 4.02227 4.8094V3.96565ZM11.7285 16.2563H6.27227C5.79414 16.2563 5.40039 15.8906 5.37227 15.3844L4.95039 6.2719H13.0785L12.6566 15.3844C12.6004 15.8625 12.2066 16.2563 11.7285 16.2563Z" />
                     </svg>
                   </button>
                 </td>
@@ -486,7 +401,20 @@ const ProductsPage = () => {
             ))}
           </tbody>
         </table>
+        {isConfirmModalOpen && (
+          <Modal
+            isOpen={isConfirmModalOpen}
+            closeModal={() => setIsConfirmModalOpen(false)}
+            title={modalProps.title}
+            message={modalProps.message}
+            actionLabel={modalProps.actionLabel}
+            actionHandler={modalProps.actionHandler}
+            redirectTo={modalProps.redirectTo}
+          />
+        )}
       </div>
+
+      <ToastContainer />
     </div>
   );
 };

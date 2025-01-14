@@ -1,6 +1,4 @@
 "use client";
-import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
-import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import jwt_decode from "jwt-decode";
 import Image from "next/image";
 import Link from "next/link";
