@@ -138,6 +138,9 @@ const ProductsPage = () => {
   };
 
   const handleSubmit = async () => {
+    console.log("🚀 ~ ProductsPage ~ isEditMode:", isEditMode);
+    console.log("🚀 ~ handleSubmit ~ formData111:", formData);
+
     try {
       if (isEditMode) {
         // Edit product
@@ -216,7 +219,7 @@ const ProductsPage = () => {
   const handleDelete = async (id: string) => {
     try {
       await axios.delete(
-        `https://season-collection-backend.onrender.com/api/jewelry/${id}`,
+        "https://season-collection-backend.onrender.com/api/jewelry/${id}",
       );
       setProducts((prevProducts) =>
         prevProducts.filter((product) => product.id !== id),
@@ -260,16 +263,11 @@ const ProductsPage = () => {
       )}
 
       {/* Add Product Button */}
-      <div className="mb-5 flex justify-center">
-        <button
-          onClick={handleAddProduct}
-          className="inline-flex items-center justify-center rounded-full bg-blue-500 px-6 py-3 text-center font-semibold text-white hover:bg-blue-600"
-        >
-          Add Product
-        </button>
+      <div className="mb-5 inline-flex items-center justify-center rounded-full bg-white px-10 py-4 text-center font-semibold text-black hover:bg-opacity-90 lg:px-8 xl:px-10">
+        <button onClick={handleAddProduct}>Add Product</button>
       </div>
 
-      {/* Filters (Responsive) */}
+      {/* Product Table */}
       <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
         {/* Category Filter */}
         <select
@@ -432,6 +430,17 @@ const ProductsPage = () => {
             </div>
           </div>
         ))}
+        {isConfirmModalOpen && (
+          <Modal
+            isOpen={isConfirmModalOpen}
+            closeModal={() => setIsConfirmModalOpen(false)}
+            title={modalProps.title}
+            message={modalProps.message}
+            actionLabel={modalProps.actionLabel}
+            actionHandler={modalProps.actionHandler}
+            redirectTo={modalProps.redirectTo}
+          />
+        )}
       </div>
 
       <ToastContainer />
