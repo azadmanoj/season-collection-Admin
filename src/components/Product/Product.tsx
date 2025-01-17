@@ -448,7 +448,7 @@ const ProductsPage = () => {
                 <input
                   type="checkbox"
                   checked={product.published}
-                  onChange={() => updatePublish(product.id, !product.published)} // Toggle the value
+                  onChange={() => updatePublish(product.id, product.published)} // Toggle the value
                   className="form-checkbox h-5 w-5 text-blue-600"
                 />
               </div>
