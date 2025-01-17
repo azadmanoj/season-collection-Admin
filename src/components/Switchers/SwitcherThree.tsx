@@ -1,7 +1,12 @@
 import { useState } from "react";
 
-const SwitcherThree = ({ enabled, setEnabled }: any) => {
-  // const [enabled, setEnabled] = useState(false);
+const SwitcherThree = ({ enabled, setEnabled, onClick }: any) => {
+  const handleToggle = () => {
+    // Update the enabled state first
+    setEnabled((prev: boolean) => !prev);
+    // Trigger the onClick callback to perform the update action
+    onClick();
+  };
 
   return (
     <div>
@@ -14,9 +19,8 @@ const SwitcherThree = ({ enabled, setEnabled }: any) => {
             type="checkbox"
             id="toggle3"
             className="sr-only"
-            onChange={() => {
-              setEnabled(!enabled);
-            }}
+            checked={enabled}
+            onChange={handleToggle} // Handle state change and trigger onClick
           />
           <div className="block h-8 w-14 rounded-full bg-meta-9 dark:bg-[#5A616B]"></div>
           <div

@@ -59,7 +59,6 @@ const ProductModal = ({
 
           // Compress the image
           const compressedFile = await imageCompression(file, options);
-          console.log("🚀 ~ newImages ~ compressedFile:", compressedFile)
 
           // Convert the compressed image to base64
           const reader = new FileReader();

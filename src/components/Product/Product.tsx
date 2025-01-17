@@ -46,6 +46,7 @@ const ProductsPage = () => {
     published: true,
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [enabled, setEnabled] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false); // Track if it's edit mode
   const [modalProps, setModalProps] = useState({
     title: "",
@@ -116,6 +117,35 @@ const ProductsPage = () => {
     isPublished,
   ]);
 
+  const updateProductStatus = async (id: string, currentStatus: string) => {
+    try {
+      const updatedStatus =
+        currentStatus === "Active" ? "Not Active" : "Active";
+
+      // Prepare the data to send to the backend
+      const formData = { status: updatedStatus };
+
+      // Make the API call to update the product's status
+      const response = await axios.put(
+        `https://season-collection-backend.onrender.com/api/jewelry/${id}`,
+        formData,
+      );
+
+      // Update the product's status in the state after successful API call
+      setProducts((prevProducts) =>
+        prevProducts.map((prod) =>
+          prod.id === id ? { ...prod, status: updatedStatus } : prod,
+        ),
+      );
+
+      // Show a success toast
+      toast.success("Product status updated successfully!");
+    } catch (error) {
+      console.error("Error updating product status:", error);
+      toast.error("Failed to update product status.");
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLElement>) => {
     const { name, value } = e.target as HTMLInputElement | HTMLTextAreaElement;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -137,10 +167,38 @@ const ProductsPage = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    console.log("🚀 ~ ProductsPage ~ isEditMode:", isEditMode);
-    console.log("🚀 ~ handleSubmit ~ formData111:", formData);
+  const updatePublish = async (id: string, currentStatus: boolean) => {
+    console.log("🚀 ~ updatePublish ~ currentStatus:", currentStatus);
+    console.log("🚀 ~ updatePublish ~ id:", id);
+    try {
+      // Toggle the current published status (if true set to false, if false set to true)
+      const updatedStatus = !currentStatus;
 
+      // Prepare the data (assuming you need to send the updated 'published' status to the backend)
+      const formData = { published: updatedStatus };
+
+      // Make the API call to update the product's published status
+      const response = await axios.put(
+        `https://season-collection-backend.onrender.com/api/jewelry/${id}`,
+        formData,
+      );
+
+      // Show success toast
+      toast.success("Product updated successfully!");
+
+      // Update the product's status in the state
+      setProducts((prevProducts) =>
+        prevProducts.map((prod) =>
+          prod.id === id ? { ...prod, published: updatedStatus } : prod,
+        ),
+      );
+    } catch (error) {
+      console.error("Error updating product:", error);
+      toast.error("Failed to update product status.");
+    }
+  };
+
+  const handleSubmit = async () => {
     try {
       if (isEditMode) {
         // Edit product
@@ -359,12 +417,22 @@ const ProductsPage = () => {
             </div>
 
             {/* Status, Published */}
-            <div className="flex flex-col space-y-2 text-sm text-gray-800 sm:w-1/4">
-              <div>
-                Status:{" "}
+            <div className="flex items-center gap-2 text-sm text-gray-800 sm:w-1/4">
+              {/* Checkbox for toggling status */}
+              <input
+                type="checkbox"
+                checked={product.status === "Active"} // Convert the string status to boolean
+                onChange={() => updateProductStatus(product.id, product.status)} // Use onChange instead of onClick for better accessibility
+                className="form-checkbox h-5 w-5 text-blue-600"
+              />
+
+              {/* Status Label */}
+              <div className="flex items-center">
+                <span className="mr-1 font-semibold">Status:</span>{" "}
+                {/* Bold label */}
                 <span
-                  className={`inline-block rounded-full px-3 py-1 text-xs ${
-                    product.status === "active"
+                  className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${
+                    product.status === "Active"
                       ? "bg-green-100 text-green-600"
                       : "bg-red-100 text-red-600"
                   }`}
@@ -372,20 +440,31 @@ const ProductsPage = () => {
                   {product.status}
                 </span>
               </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm text-gray-800 sm:w-1/4">
+              {/* Published Checkbox */}
               <div>
-                Published:{" "}
-                <SwitcherThree
-                  enabled={product.published}
-                  setEnabled={() =>
-                    setProducts((prevProducts) =>
-                      prevProducts.map((prod) =>
-                        prod.id === product.id
-                          ? { ...prod, published: !prod.published }
-                          : prod,
-                      ),
-                    )
-                  }
+                <input
+                  type="checkbox"
+                  checked={product.published}
+                  onChange={() => updatePublish(product.id, !product.published)} // Toggle the value
+                  className="form-checkbox h-5 w-5 text-blue-600"
                 />
+              </div>
+
+              {/* Published Status Text */}
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">Published:</span>
+                <span
+                  className={`inline-block rounded-full px-3 py-1 text-xs ${
+                    product.published
+                      ? "bg-green-100 text-green-600"
+                      : "bg-red-100 text-red-600"
+                  }`}
+                >
+                  {product.published ? "True" : "False"}
+                </span>
               </div>
             </div>
 
