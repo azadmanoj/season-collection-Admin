@@ -327,26 +327,26 @@ const ProductsPage = () => {
             {/* Image and Product Name */}
             <div className="flex items-center space-x-4 sm:w-1/4">
               {/* Display images */}
-              <div className="flex max-w-full flex-wrap space-x-2 overflow-hidden">
+              <div className="grid grid-cols-3 gap-2">
                 {(Array.isArray(product.images)
                   ? product.images
                   : [product.images]
                 ).map((image, index) => (
-                  <div key={index} className="mb-2 h-16 w-16 flex-shrink-0">
+                  <div key={index} className="mb-2">
                     <Image
                       src={image}
                       alt={product.title}
-                      width={64} // You can adjust the width
-                      height={64} // You can adjust the height
+                      width={64} // Adjust the width
+                      height={64} // Adjust the height
                       className="rounded-lg object-cover shadow-md"
                     />
                   </div>
                 ))}
               </div>
-              <span className="text-lg font-semibold text-gray-900">
-                {product.title}
-              </span>
             </div>
+            <span className="text-lg font-semibold text-gray-900">
+              {product.title}
+            </span>
 
             {/* Description, Category, Price, Stock */}
             <div className="flex flex-col space-y-2 text-gray-800 sm:w-2/4">
