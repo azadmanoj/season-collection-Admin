@@ -13,7 +13,6 @@ const ProductModal = ({
   setFormData,
   setIsEditMode,
 }: any) => {
-
   // Initialize form data when in edit mode
   useEffect(() => {
     if (mode === "edit" && product) {
@@ -101,8 +100,8 @@ const ProductModal = ({
   const router = useRouter();
 
   return (
-    <div className="fixed inset-4 flex items-center justify-center bg-black bg-opacity-50 sm:mt-22">
-      <div className="max-h-[90vh] w-full overflow-y-auto rounded-lg bg-[#1a222c] p-6 shadow-xl sm:w-96">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 sm:mt-22">
+      <div className="mx-4 mt-16 h-[550px] w-full overflow-y-auto rounded-lg bg-[#1a222c] p-6 shadow-xl sm:mx-0 sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:h-[800px] xl:mt-0 xl:max-w-2xl">
         <h2 className="mb-4 text-xl font-semibold text-white">
           {mode === "edit" ? "Edit Product" : "Add New Product"}
         </h2>
@@ -135,7 +134,7 @@ const ProductModal = ({
               className="w-full rounded border p-2 text-black"
             />
             {formData?.images && formData?.images.length > 0 && (
-              <div className="mt-4 grid grid-cols-2 gap-4">
+              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                 {formData.images.map((image: string, index: number) => (
                   <div
                     key={index}
@@ -147,7 +146,6 @@ const ProductModal = ({
                       width={200}
                       height={150}
                     />
-                    {/* Add a remove button with an "X" icon */}
                     <button
                       type="button"
                       onClick={() => handleRemoveImage(index)}
@@ -239,7 +237,7 @@ const ProductModal = ({
             <button
               type="button"
               onClick={handleSubmit}
-              className="w-full rounded bg-blue-500 px-4 py-2 text-white"
+              className="w-full rounded bg-blue-500 px-4 py-2 text-white sm:w-auto"
             >
               {mode === "edit" ? "Update Product" : "Submit"}
             </button>
@@ -250,7 +248,7 @@ const ProductModal = ({
                 onClose();
                 if (redirectTo) router.push(redirectTo);
               }}
-              className="w-full rounded bg-blue-500 px-4 py-2 text-white"
+              className="w-full rounded bg-blue-500 px-4 py-2 text-white sm:w-auto"
             >
               Close
             </button>
