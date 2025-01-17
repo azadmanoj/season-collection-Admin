@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: " Season Collection Settings |  Season Collection",
   description:
     "This is  Season Collection Settings page for  Season Collection Admin Dashboard",
+    icons: {
+      icon: "/images/logo/logoNew.ico", // This references the favicon in the public directory
+    },
 };
 
 const Settings = () => {

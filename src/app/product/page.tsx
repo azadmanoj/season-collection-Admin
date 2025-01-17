@@ -6,6 +6,9 @@ import Product from "@/components/Product/Product";
 export const metadata: Metadata = {
   title: " Season Collection Product |  Season Collection",
   description: "This is  Season Collection Product page for  Admin Dashboard ",
+  icons: {
+    icon: "/images/logo/logoNew.ico", // This references the favicon in the public directory
+  },
 };
 
 const ProductPage = () => {

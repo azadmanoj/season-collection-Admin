@@ -7,6 +7,9 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: " Season Collection Profile |  Season Collection",
   description: "This is  Season Collection Profile page  Admin Dashboard",
+  icons: {
+    icon: "/images/logo/logoNew.ico", // This references the favicon in the public directory
+  },
 };
 
 const Profile = () => {

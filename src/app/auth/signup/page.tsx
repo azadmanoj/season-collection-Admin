@@ -9,6 +9,9 @@ import DefaultLayout from "@/components/Layouts/DefaultLayout";
 export const metadata: Metadata = {
   title: " Season Collection SignUp  |  Season Collection",
   description: "This is  Season Collection SignUp Page",
+  icons: {
+    icon: "/images/logo/logoNew.ico", // This references the favicon in the public directory
+  },
   // other metadata
 };
 
@@ -24,14 +27,14 @@ const SignUp: React.FC = () => {
               <Link className="mb-5.5 inline-block" href="/">
                 <Image
                   className="hidden dark:block"
-                  src={"/images/logo/logo4.png"}
+                  src={"/images/logo/logoNew.png"}
                   alt="Logo"
                   width={176}
                   height={32}
                 />
                 <Image
                   className="dark:hidden"
-                  src={"/images/logo/logo4.png"}
+                  src={"/images/logo/logoNew.png"}
                   alt="Logo"
                   width={176}
                   height={32}

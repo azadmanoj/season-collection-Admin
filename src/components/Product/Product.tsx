@@ -14,7 +14,7 @@ interface Product {
   _id: string;
   id: string;
   title: string;
-  image: string;
+  images: [];
   price: number;
   description: string;
   category: string;
@@ -38,7 +38,7 @@ const ProductsPage = () => {
   const [formData, setFormData] = useState({
     id: "",
     title: "",
-    image: "",
+    images: [],
     price: 0,
     description: "",
     category: "",
@@ -162,7 +162,7 @@ const ProductsPage = () => {
       setFormData({
         id: "",
         title: "",
-        image: "",
+        images: [],
         price: 0,
         description: "",
         category: "",
@@ -180,7 +180,7 @@ const ProductsPage = () => {
     setFormData({
       id: "",
       title: "",
-      image: "",
+      images: [],
       price: 0,
       description: "",
       category: "",
@@ -241,7 +241,10 @@ const ProductsPage = () => {
         <ProductModal
           mode={productModalProps.mode}
           product={productModalProps.product}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            window.location.reload();
+          }}
           onSubmit={handleSubmit}
           redirectTo={productModalProps.redirectTo}
           formData={formData}
@@ -253,7 +256,10 @@ const ProductsPage = () => {
         <ProductModal
           mode={productModalProps.mode}
           product={productModalProps.product}
-          onClose={() => setIsEditMode(false)}
+          onClose={() => {
+            setIsEditMode(false);
+            window.location.reload();
+          }}
           onSubmit={handleSubmit}
           redirectTo={productModalProps.redirectTo}
           formData={formData}
@@ -320,13 +326,23 @@ const ProductsPage = () => {
           >
             {/* Image and Product Name */}
             <div className="flex items-center space-x-4 sm:w-1/4">
-              <Image
-                src={product.image}
-                alt={product.title}
-                width={100}
-                height={100}
-                className="rounded-lg shadow-md"
-              />
+              {/* Display images */}
+              <div className="flex max-w-full flex-wrap space-x-2 overflow-hidden">
+                {(Array.isArray(product.images)
+                  ? product.images
+                  : [product.images]
+                ).map((image, index) => (
+                  <div key={index} className="mb-2 h-16 w-16 flex-shrink-0">
+                    <Image
+                      src={image}
+                      alt={product.title}
+                      width={64} // You can adjust the width
+                      height={64} // You can adjust the height
+                      className="rounded-lg object-cover shadow-md"
+                    />
+                  </div>
+                ))}
+              </div>
               <span className="text-lg font-semibold text-gray-900">
                 {product.title}
               </span>
@@ -433,7 +449,10 @@ const ProductsPage = () => {
         {isConfirmModalOpen && (
           <Modal
             isOpen={isConfirmModalOpen}
-            closeModal={() => setIsConfirmModalOpen(false)}
+            closeModal={() => {
+              setIsConfirmModalOpen(false);
+              window.location.reload();
+            }}
             title={modalProps.title}
             message={modalProps.message}
             actionLabel={modalProps.actionLabel}

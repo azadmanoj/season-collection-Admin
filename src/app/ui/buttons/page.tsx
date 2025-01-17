@@ -6,6 +6,9 @@ import DefaultLayout from "@/components/Layouts/DefaultLayout";
 export const metadata: Metadata = {
   title: " Season Collection Buttons | Season Collection",
   description: "This is  Buttons page for  Admin Dashboard ",
+  icons: {
+    icon: "/images/logo/logoNew.ico", // This references the favicon in the public directory
+  },
 };
 
 const Buttons = () => {

@@ -2,6 +2,15 @@
 import React, { useState, ReactNode } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: " Season Collection Product |  Season Collection",
+  description: "This is  Season Collection Product page for  Admin Dashboard ",
+  icons: {
+    icon: "/images/logo/logoNew.ico", // This references the favicon in the public directory
+  },
+};
 
 export default function DefaultLayout({
   children,

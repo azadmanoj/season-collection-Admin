@@ -1,6 +1,7 @@
 import { useState, useEffect, ChangeEvent } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import imageCompression from "browser-image-compression";
 
 const ProductModal = ({
   mode,
@@ -12,16 +13,14 @@ const ProductModal = ({
   setFormData,
   setIsEditMode,
 }: any) => {
-  console.log("🚀 ~ onClose:", onClose);
-  console.log("🚀 ~ mode:", mode);
-  console.log("🚀 ~ product:", product);
+
   // Initialize form data when in edit mode
   useEffect(() => {
     if (mode === "edit" && product) {
       setFormData({
         id: product?.id,
         title: product?.title,
-        image: product?.image,
+        images: product?.images || [], // Assuming product.images is an array
         price: product?.price,
         description: product?.description,
         category: product?.category,
@@ -41,26 +40,65 @@ const ProductModal = ({
     }));
   };
 
-  const handleAddImage = (
+  const handleAddImages = async (
     e: ChangeEvent<HTMLInputElement>,
-    callback: (fieldName: string, value: string) => void,
+    callback: (fieldName: string, value: string[]) => void,
   ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (reader.result) {
-          callback("image", reader.result as string);
+    const files = e.target.files;
+    if (files) {
+      const newImages = Array.from(files).map(async (file) => {
+        try {
+          // Compression options to ensure images are below 100KB
+          const options = {
+            maxSizeMB: 0.01, // Max size of the image in MB (100KB)
+            maxWidthOrHeight: 800, // Resize image to a max width or height of 800px
+            useWebWorker: true, // Use Web Worker for better performance
+            fileType: "image/jpeg", // Convert to JPEG format for better compression
+            quality: 0.7, // Set the quality of the image (optional, lower to reduce size further)
+          };
+
+          // Compress the image
+          const compressedFile = await imageCompression(file, options);
+          console.log("🚀 ~ newImages ~ compressedFile:", compressedFile)
+
+          // Convert the compressed image to base64
+          const reader = new FileReader();
+          return new Promise<string>((resolve) => {
+            reader.onloadend = () => {
+              if (reader.result) {
+                const base64String = reader.result as string;
+                resolve(base64String);
+              }
+            };
+            reader.readAsDataURL(compressedFile);
+          });
+        } catch (error) {
+          console.error("Image compression error:", error);
+          return "";
         }
-      };
-      reader.readAsDataURL(file);
+      });
+
+      const imageData = await Promise.all(newImages);
+
+      // Ensure formData?.images is not undefined, default to an empty array
+      callback("images", [
+        ...(formData?.images || []),
+        ...imageData.filter(Boolean),
+      ]);
     }
+  };
+  const handleRemoveImage = (index: number) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      images: prev.images.filter((image: string, i: number) => i !== index), // Explicitly typing the filter parameters
+    }));
   };
 
   const handleSubmit = () => {
     onSubmit(formData);
     setIsEditMode(true);
   };
+
   const router = useRouter();
 
   return (
@@ -84,26 +122,42 @@ const ProductModal = ({
           </div>
           <div className="mb-4">
             <label className="block text-sm font-semibold text-white">
-              Image
+              Images
             </label>
             <input
               type="file"
               accept="image/*"
+              multiple
               onChange={(e) =>
-                handleAddImage(e, (fieldName: any, value: any) =>
+                handleAddImages(e, (fieldName: any, value: any) =>
                   setFormData((prev: any) => ({ ...prev, [fieldName]: value })),
                 )
               }
               className="w-full rounded border p-2 text-black"
             />
-            {formData?.image && (
-              <div className="relative mt-4 max-h-[300px] overflow-hidden rounded-md border">
-                <Image
-                  src={formData?.image}
-                  alt="Product Preview"
-                  width={500}
-                  height={300}
-                />
+            {formData?.images && formData?.images.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                {formData.images.map((image: string, index: number) => (
+                  <div
+                    key={index}
+                    className="relative max-h-[150px] overflow-hidden rounded-md border"
+                  >
+                    <Image
+                      src={image}
+                      alt={`Product Preview ${index + 1}`}
+                      width={200}
+                      height={150}
+                    />
+                    {/* Add a remove button with an "X" icon */}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(index)}
+                      className="absolute right-2 top-2 rounded-full bg-white p-1 text-sm text-black"
+                    >
+                      X
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -138,6 +192,19 @@ const ProductModal = ({
               type="text"
               name="category"
               value={formData?.category}
+              onChange={handleInputChange}
+              className="w-full rounded border p-2 text-black"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-white">
+              Stock
+            </label>
+            <input
+              type="text"
+              name="stock"
+              value={formData?.stock}
               onChange={handleInputChange}
               className="w-full rounded border p-2 text-black"
             />
@@ -186,7 +253,7 @@ const ProductModal = ({
               }}
               className="w-full rounded bg-blue-500 px-4 py-2 text-white"
             >
-              close
+              Close
             </button>
           </div>
         </form>

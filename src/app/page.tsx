@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title:
     "Season Collection Dashboard | Season Collection",
   description: "This is Season Collection Dashboard ",
+  icons: {
+    icon: "/images/logo/logoNew.ico", // This references the favicon in the public directory
+  },
 };
 
 export default function Home() {
