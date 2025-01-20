@@ -4,9 +4,7 @@ import axios from "axios";
 import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import SwitcherThree from "../Switchers/SwitcherThree";
 import Modal from "../Modal/Modal";
-import Loader from "../common/Loader";
 import ProductModal from "../ProductModal/ProductModal"; // Import the modal component
 
 // Define the Product interface

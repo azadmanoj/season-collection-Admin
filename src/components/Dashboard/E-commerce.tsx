@@ -6,6 +6,32 @@ import CardDataStats from "../CardDataStats";
 import TableTwo from "../Tables/TableTwo";
 import { useRouter } from "next/navigation";
 import jwt_decode from "jwt-decode";
+import { toast, ToastContainer } from "react-toastify";
+
+interface Order {
+  orderId: string;
+  orderTime: string;
+  customerName: string;
+  paymentMethod: string;
+  totalAmount: number;
+  utrNumber: string;
+  utrStatus: string;
+  orderStatus: string;
+  items: [];
+}
+interface Product {
+  _id: string;
+  id: string;
+  title: string;
+  images: [];
+  price: number;
+  description: string;
+  category: string;
+  collection: string;
+  stock: number;
+  status: string;
+  published: boolean;
+}
 
 const MapOne = dynamic(() => import("@/components/Maps/MapOne"), {
   ssr: false,
@@ -16,8 +42,46 @@ const ChartThree = dynamic(() => import("@/components/Charts/ChartThree"), {
 });
 
 const ECommerce: React.FC = () => {
-  const [loading, setLoading] = useState("");
   const router = useRouter();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [currentMonthSale, setCurrentMonthSale] = useState<number>(0);
+  const [totalSale, setTotalSale] = useState<number>(0);
+
+  useEffect(() => {
+    fetch("https://season-collection-backend.onrender.com/api/orders")
+      .then((response) => response.json())
+      .then((data: Order[]) => {
+        setOrders(data);
+        calculateCurrentMonthSale(data);
+      })
+      .catch((error) => {
+        toast.error("SC:FAILED_TO_GET_ORDERS!");
+      });
+  }, []);
+
+  useEffect(() => {
+    fetch("https://season-collection-backend.onrender.com/api/jewelry")
+      .then((response) => response.json())
+      .then((data: Product[]) => {
+        setProducts(data);
+      })
+      .catch((error) => {
+        console.error("Error fetching products:", error);
+      });
+  }, []);
+
+  useEffect(() => {
+    fetch("https://season-collection-backend.onrender.com/api/auth")
+      .then((response) => response.json())
+      .then((data: any) => {
+        setUsers(data);
+      })
+      .catch((error) => {
+        console.error("Error fetching products:", error);
+      });
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -43,13 +107,42 @@ const ECommerce: React.FC = () => {
       };
   });
 
+  const calculateCurrentMonthSale = (orders: Order[]) => {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    const monthTotal = orders.reduce((acc, order): any => {
+      const orderDate = new Date(order.orderTime);
+      const orderMonth = orderDate.getMonth();
+      const orderYear = orderDate.getFullYear();
+
+      if (orderMonth === currentMonth && orderYear === currentYear) {
+        return acc + order.totalAmount;
+      }
+      return acc;
+    }, 0);
+    setCurrentMonthSale(monthTotal);
+  };
+
+  useEffect(() => {
+    const Sale = orders.reduce((acc, order): any => {
+      return acc + order.totalAmount;
+    }, 0);
+    setTotalSale(Sale);
+  }, [orders]); // This will only run when the `orders` array changes
+
+  const calculatePercentage = (value: number, total: number) => {
+    return total > 0 ? ((value / total) * 100).toFixed(2) : "0.00";
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-5 2xl:gap-7.5">
         <CardDataStats
           title="All Time Sale"
-          total="₹3,00,000"
-          rate="0.43%"
+          total={`₹${totalSale.toFixed(2)}`}
+          rate={`${calculatePercentage(totalSale, totalSale)}%`}
           levelUp
         >
           <svg
@@ -73,8 +166,8 @@ const ECommerce: React.FC = () => {
 
         <CardDataStats
           title="This Month Sale"
-          total="₹10,000"
-          rate="0.43%"
+          total={`₹${currentMonthSale.toFixed(2)}`}
+          rate={`${calculatePercentage(currentMonthSale, totalSale)}%`}
           levelUp
         >
           <svg
@@ -95,7 +188,12 @@ const ECommerce: React.FC = () => {
             />
           </svg>
         </CardDataStats>
-        <CardDataStats title="Total Orders" total="151" rate="4.35%" levelUp>
+        <CardDataStats
+          title="Total Orders"
+          total={orders.length}
+          rate={`${calculatePercentage(orders.length, orders.length)}%`}
+          levelUp
+        >
           <svg
             className="fill-primary dark:fill-white"
             width="20"
@@ -118,7 +216,12 @@ const ECommerce: React.FC = () => {
             />
           </svg>
         </CardDataStats>
-        <CardDataStats title="Total Product" total="250" rate="2.59%" levelUp>
+        <CardDataStats
+          title="Total Product"
+          total={products.length}
+          rate={`${calculatePercentage(products.length, products.length)}%`}
+          levelUp
+        >
           <svg
             className="fill-primary dark:fill-white"
             width="22"
@@ -137,7 +240,12 @@ const ECommerce: React.FC = () => {
             />
           </svg>
         </CardDataStats>
-        <CardDataStats title="Total Users" total="101" rate="0.95%" levelDown>
+        <CardDataStats
+          title="Total Users"
+          total={users.length}
+          rate={`${calculatePercentage(users.length, users.length)}%`}
+          levelDown
+        >
           <svg
             className="fill-primary dark:fill-white"
             width="22"
@@ -172,6 +280,7 @@ const ECommerce: React.FC = () => {
           <TableTwo />
         </div>
       </div>
+      <ToastContainer />
     </>
   );
 };
