@@ -50,6 +50,7 @@ const menuGroups = [
         children: [
           { label: "eCommerce", route: "/" },
           { label: "Product", route: "/product" },
+          { label: "Orders", route: "/orders" },
         ],
       },
       {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import ClickOutside from "@/components/ClickOutside";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 export interface UserDetails {
   firstName: string;
@@ -26,6 +27,8 @@ const DropdownUser = () => {
         .catch((error) => {
           console.error("Error fetching user details:", error);
         });
+    } else {
+      toast.error("SC:USER_ID_NOT_FOUND!");
     }
   }, [id]);
 

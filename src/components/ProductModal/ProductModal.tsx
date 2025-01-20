@@ -49,11 +49,11 @@ const ProductModal = ({
         try {
           // Compression options to ensure images are below 100KB
           const options = {
-            maxSizeMB: 0.01, // Max size of the image in MB (100KB)
+            maxSizeMB: 0.02, // Max size of the image in MB (100KB)
             maxWidthOrHeight: 800, // Resize image to a max width or height of 800px
             useWebWorker: true, // Use Web Worker for better performance
             fileType: "image/jpeg", // Convert to JPEG format for better compression
-            quality: 0.7, // Set the quality of the image (optional, lower to reduce size further)
+            quality: 0.9, // Set the quality of the image (optional, lower to reduce size further)
           };
 
           // Compress the image

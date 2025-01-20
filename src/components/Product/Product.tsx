@@ -168,8 +168,6 @@ const ProductsPage = () => {
   };
 
   const updatePublish = async (id: string, currentStatus: boolean) => {
-    console.log("🚀 ~ updatePublish ~ currentStatus:", currentStatus);
-    console.log("🚀 ~ updatePublish ~ id:", id);
     try {
       // Toggle the current published status (if true set to false, if false set to true)
       const updatedStatus = !currentStatus;
@@ -292,7 +290,7 @@ const ProductsPage = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="mb-6 text-center text-3xl font-bold">Product Page</h1>
+      <h1 className="mb-6 text-center text-3xl font-bold">Products</h1>
 
       {/* Modal */}
       {isModalOpen && (
